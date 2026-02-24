@@ -1,0 +1,71 @@
+#include <iostream>
+#include <unordered_map>
+#include <stack>
+#include <queue>
+using namespace std;
+
+struct Task {
+    int id, priority;
+    string name, status;
+    Task* next;
+    Task(int i, string n, int p) {
+        id = i; name = n; priority = p;
+        status = "Pending"; next = NULL;
+    }
+};
+
+Task* head = NULL;
+unordered_map<int, Task*> mp;
+stack<Task*> undoS;
+queue<Task*> q;
+
+void addTask() {
+    int id, p; string n;
+    cin >> id >> n >> p;
+    if (mp.count(id)) return;
+    Task* t = new Task(id, n, p);
+    t->next = head; head = t;
+    mp[id] = t; q.push(t);
+}
+
+void deleteTask() {
+    int id; cin >> id;
+    Task *cur = head, *pre = NULL;
+    while (cur && cur->id != id) { pre = cur; cur = cur->next; }
+    if (!cur) return;
+    undoS.push(cur);
+    if (!pre) head = cur->next;
+    else pre->next = cur->next;
+    mp.erase(id);
+}
+
+void undoDelete() {
+    if (undoS.empty()) return;
+    Task* t = undoS.top(); undoS.pop();
+    t->next = head; head = t;
+    mp[t->id] = t;
+}
+
+void executeTask() {
+    if (q.empty()) return;
+    q.front()->status = "Completed";
+    q.pop();
+}
+
+void display() {
+    for (Task* t = head; t; t = t->next)
+        cout << t->id << " " << t->name << " " << t->status << endl;
+}
+
+int main() {
+    int ch;
+    while (cin >> ch) {
+        if (ch == 1) addTask();
+        else if (ch == 2) deleteTask();
+        else if (ch == 3) undoDelete();
+        else if (ch == 4) executeTask();
+        else if (ch == 5) display();
+        else break;
+    }
+    return 0;
+}
